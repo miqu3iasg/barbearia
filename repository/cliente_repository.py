@@ -17,8 +17,11 @@ def criar_cliente(nome: str, telefone: int):
     try:
         cursor = cnx.cursor()
         cursor.execute(query, (nome, telefone))
-        cursor.commit()
+        cnx.commit()
         return cursor.lastrowid
+    except Exception:
+        cnx.rollback()
+        raise
     finally:
         cnx.close()
 
@@ -27,17 +30,17 @@ def buscar_cliente_por_id(cliente_id: int):
     """Retorna um cliente pelo ID.
 
     Args:
-        cliente_id: Identiicador único do cliente no banco de dados.
+        cliente_id: Identificador único do cliente no banco de dados.
 
     Returns:
         Um dicionário com os dados do cliente, ou None se não existir nenhum cliente no
         banco de dados com o ID desejado.
     """
-    query = "SELECT nome, telefone FROM clientes WHERE id = %s"
+    query = "SELECT id, nome, telefone FROM cliente WHERE id = %s"
     cnx = connect()
     try:
         cursor = cnx.cursor(dictionary=True)
-        cursor.execute(query, (cliente_id))
+        cursor.execute(query, (cliente_id,))
         return cursor.fetchone()
     finally:
         cnx.close()
@@ -52,29 +55,32 @@ def listar_todos_os_clientes():
     cnx = connect()
     try:
         cursor = cnx.cursor(dictionary=True)
-        cursor.execute("SELECT nome, telefone FROM clientes")
+        cursor.execute("SELECT id, nome, telefone FROM cliente")
         return cursor.fetchall()
     finally:
         cnx.close()
 
 
-def excluir_cliente(cliente_id):
+def excluir_cliente(cliente_id: int):
     """Exclui um cliente do banco de dados.
 
     Args:
-        cliente_id: Identiicador único do cliente no banco de dados.
+        cliente_id: Identificador único do cliente no banco de dados.
 
     Returns:
         True se o cliente foi encontrado e deletado com sucesso, ou False se não existe
         cliente com o id cadastrado.
     """
-    query = "DELETE FROM clientes where id = %s"
+    query = "DELETE FROM cliente WHERE id = %s"
     cnx = connect()
     try:
         cursor = cnx.cursor()
-        cursor.execute(query, (cliente_id))
+        cursor.execute(query, (cliente_id,))
         cnx.commit()
         return cursor.rowcount > 0
+    except Exception:
+        cnx.rollback()
+        raise
     finally:
         cnx.close()
 
@@ -91,12 +97,15 @@ def atualizar_cliente(cliente_id: int, nome: str, telefone: int):
         True se o cliente foi encontrado e atualizado com sucesso, ou False se não
         existe cliente com o id cadastrado.
     """
-    query = "UPDATE clientes SET nome=%s, telefone=%s WHERE id=%s"
+    query = "UPDATE cliente SET nome=%s, telefone=%s WHERE id=%s"
     cnx = connect()
     try:
         cursor = cnx.cursor()
         cursor.execute(query, (nome, telefone, cliente_id))
-        cursor.commit()
+        cnx.commit()
         return cursor.rowcount > 0
+    except Exception:
+        cnx.rollback()
+        raise
     finally:
         cnx.close()
