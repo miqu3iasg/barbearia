@@ -6,11 +6,6 @@ O projeto consiste no desenvolvimento de um sistema para auxiliar no gerenciamen
 
 ## Tecnologias
 
-<div>
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" height="50" alt="Python" />
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original-wordmark.svg" height="50" alt="MySQL" />
-</div>
-
 - Python
 - MySQL
 
