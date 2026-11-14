@@ -23,19 +23,19 @@ CONFIG = {
 }
 
 
-# See: https://dev.mysql.com/doc/connector-python/en/connector-python-example-connecting.html
+# Veja: https://dev.mysql.com/doc/connector-python/en/connector-python-example-connecting.html
 def connect(config: dict, attempts: int = 3, delay: float = 2):
-    """Connect to MySQL, retrying with exponential backoff."""
+    """Conecta ao MySQL, tentando novamente com backoff exponencial."""
     attempt = 1
     while attempt < attempts + 1:
         try:
             return mysql.connector.connect(**config)
         except (mysql.connector.Error, IOError) as err:
             if attempts is attempt:
-                logger.info("Failed to connect, exiting without a connection: %s", err)
+                logger.info("Falha ao conectar, encerrando sem conexão: %s", err)
                 return None
             logger.info(
-                "Connection failed: %s. Retrying (%d/%d)...",
+                "Falha na conexão: %s. Tentando novamente (%d/%d)...",
                 err,
                 attempt,
                 attempts - 1,
@@ -51,5 +51,5 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     cnx = connect(CONFIG)
-    logger.info("Connected to MySQL version %s", cnx.server_info)
+    logger.info("Conectado ao MySQL versão %s", cnx.server_info)
     cnx.close()
