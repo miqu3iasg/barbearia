@@ -7,74 +7,70 @@ if ROOT_DIR not in sys.path:
 
 import customtkinter as ctk
 
-from view.agendamento_view import AgendamentoView
-from view.barbeiro_view import BarbeiroView
-from view.cliente_view import ClienteView
-from view.servico_view import ServicoView
+from view.agendamento_view import criar_tela_agendamentos
+from view.barbeiro_view import criar_tela_barbeiros
+from view.cliente_view import criar_tela_clientes
+from view.servico_view import criar_tela_servicos
 
 
-class MainView(ctk.CTk):
+def criar_janela_principal(controllers: dict | None = None):
+    ctrls = controllers or {}
 
-    def __init__(self, controllers: dict | None = None):
-        super().__init__()
+    ctk.set_appearance_mode("dark")
+    ctk.set_default_color_theme("blue")
 
-        self.controllers = controllers or {}
+    app = ctk.CTk()
+    app.title("Barbearia")
+    largura = 420
+    altura = 780
+    pos_x = (app.winfo_screenwidth() - largura) // 2
+    pos_y = (app.winfo_screenheight() - altura) // 2
+    app.geometry(f"{largura}x{altura}+{pos_x}+{pos_y}")
+    app.minsize(380, 680)
 
-        ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("blue")
+    header = ctk.CTkFrame(app, height=50, corner_radius=0)
+    header.pack(fill="x", side="top")
 
-        self.title("Barbearia")
-        largura = 420
-        altura = 780
-        pos_x = (self.winfo_screenwidth() - largura) // 2
-        pos_y = (self.winfo_screenheight() - altura) // 2
-        self.geometry(f"{largura}x{altura}+{pos_x}+{pos_y}")
-        self.minsize(380, 680)
+    titulo = ctk.CTkLabel(
+        header,
+        text="BARBEARIA — AGENDA",
+        font=ctk.CTkFont(size=16, weight="bold"),
+    )
+    titulo.pack(pady=12)
 
-        self._construir_layout()
+    tabview = ctk.CTkTabview(app, corner_radius=8)
+    tabview.pack(fill="both", expand=True, padx=8, pady=(4, 10))
 
-    def _construir_layout(self):
-        header = ctk.CTkFrame(self, height=50, corner_radius=0)
-        header.pack(fill="x", side="top")
+    tab_agendamentos = tabview.add("Agenda")
+    tab_clientes = tabview.add("Clientes")
+    tab_barbeiros = tabview.add("Barbeiros")
+    tab_servicos = tabview.add("Serviços")
 
-        titulo = ctk.CTkLabel(
-            header,
-            text="BARBEARIA — AGENDA",
-            font=ctk.CTkFont(size=16, weight="bold"),
-        )
-        titulo.pack(pady=12)
+    tela_agendamentos = criar_tela_agendamentos(
+        tab_agendamentos,
+        controllers=ctrls,
+        controller=ctrls.get("agendamento"),
+    )
+    tela_agendamentos.pack(fill="both", expand=True)
 
-        self.tabview = ctk.CTkTabview(self, corner_radius=8)
-        self.tabview.pack(fill="both", expand=True, padx=8, pady=(4, 10))
+    tela_clientes = criar_tela_clientes(
+        tab_clientes, controller=ctrls.get("cliente")
+    )
+    tela_clientes.pack(fill="both", expand=True)
 
-        self.tab_agendamentos = self.tabview.add("Agenda")
-        self.tab_clientes = self.tabview.add("Clientes")
-        self.tab_barbeiros = self.tabview.add("Barbeiros")
-        self.tab_servicos = self.tabview.add("Serviços")
+    tela_barbeiros = criar_tela_barbeiros(
+        tab_barbeiros, controller=ctrls.get("barbeiro")
+    )
+    tela_barbeiros.pack(fill="both", expand=True)
 
-        self.agendamento_view = AgendamentoView(
-            self.tab_agendamentos,
-            controllers=self.controllers,
-            controller=self.controllers.get("agendamento"),
-        )
-        self.agendamento_view.pack(fill="both", expand=True)
+    tela_servicos = criar_tela_servicos(
+        tab_servicos, controller=ctrls.get("servico")
+    )
+    tela_servicos.pack(fill="both", expand=True)
 
-        self.cliente_view = ClienteView(
-            self.tab_clientes, controller=self.controllers.get("cliente")
-        )
-        self.cliente_view.pack(fill="both", expand=True)
-
-        self.barbeiro_view = BarbeiroView(
-            self.tab_barbeiros, controller=self.controllers.get("barbeiro")
-        )
-        self.barbeiro_view.pack(fill="both", expand=True)
-
-        self.servico_view = ServicoView(
-            self.tab_servicos, controller=self.controllers.get("servico")
-        )
-        self.servico_view.pack(fill="both", expand=True)
+    return app
 
 
 if __name__ == "__main__":
-    app = MainView()
-    app.mainloop()
+    janela = criar_janela_principal()
+    janela.mainloop()

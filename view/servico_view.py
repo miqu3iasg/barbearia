@@ -2,49 +2,26 @@ from tkinter import messagebox, ttk
 import customtkinter as ctk
 
 
-class _MockServicoController:
+def _chamar(ctrl, funcao: str, *args):
+    if isinstance(ctrl, dict):
+        return ctrl[funcao](*args)
+    return getattr(ctrl, funcao)(*args)
 
-    def __init__(self):
-        self._servicos = [
+
+def _criar_mock_servico():
+    dados = {
+        "lista": [
             {"id": 1, "nome": "Degradê", "preco": 35.00},
             {"id": 2, "nome": "Social", "preco": 30.00},
             {"id": 3, "nome": "Corte na Tesoura", "preco": 40.00},
             {"id": 4, "nome": "Sobrancelha", "preco": 15.00},
             {"id": 5, "nome": "Barba", "preco": 25.00},
             {"id": 10, "nome": "Corte + Barba", "preco": 55.00},
-        ]
-        self._proximo_id = 13
+        ],
+        "proximo_id": 13,
+    }
 
-    def listar_todos_os_servicos(self):
-        return list(self._servicos)
-
-    def criar_servico(self, nome: str, preco: float):
-        self._validar(nome, preco)
-        novo_id = self._proximo_id
-        self._servicos.append(
-            {"id": novo_id, "nome": nome.strip(), "preco": float(preco)}
-        )
-        self._proximo_id += 1
-        return novo_id
-
-    def atualizar_servico(self, servico_id: int, nome: str, preco: float):
-        self._validar(nome, preco)
-        for servico in self._servicos:
-            if servico["id"] == servico_id:
-                servico["nome"] = nome.strip()
-                servico["preco"] = float(preco)
-                return True
-        return False
-
-    def excluir_servico(self, servico_id: int):
-        for i, servico in enumerate(self._servicos):
-            if servico["id"] == servico_id:
-                self._servicos.pop(i)
-                return True
-        return False
-
-    @staticmethod
-    def _validar(nome: str, preco: float):
+    def validar(nome: str, preco: float):
         nome_limpo = nome.strip()
         if not nome_limpo:
             raise ValueError("O nome do serviço é obrigatório.")
@@ -53,125 +30,112 @@ class _MockServicoController:
         if preco <= 0:
             raise ValueError("O preço do serviço deve ser maior que zero.")
 
+    def listar_todos_os_servicos():
+        return list(dados["lista"])
 
-class ServicoView(ctk.CTkFrame):
-
-    def __init__(self, master, controller=None):
-        super().__init__(master, fg_color="transparent")
-        self.controller = (
-            controller if controller is not None else _MockServicoController()
+    def criar_servico(nome: str, preco: float):
+        validar(nome, preco)
+        novo_id = dados["proximo_id"]
+        dados["lista"].append(
+            {"id": novo_id, "nome": nome.strip(), "preco": float(preco)}
         )
-        self.servico_selecionado_id: int | None = None
-        self._todos_servicos: list = []
+        dados["proximo_id"] += 1
+        return novo_id
 
-        self._construir_interface()
-        self.carregar_servicos()
+    def atualizar_servico(servico_id: int, nome: str, preco: float):
+        validar(nome, preco)
+        for servico in dados["lista"]:
+            if servico["id"] == servico_id:
+                servico["nome"] = nome.strip()
+                servico["preco"] = float(preco)
+                return True
+        return False
 
-    def _construir_interface(self):
-        form_frame = ctk.CTkFrame(self, corner_radius=8)
-        form_frame.pack(fill="x", padx=4, pady=(4, 6))
+    def excluir_servico(servico_id: int):
+        for i, servico in enumerate(dados["lista"]):
+            if servico["id"] == servico_id:
+                dados["lista"].pop(i)
+                return True
+        return False
 
-        ctk.CTkLabel(
-            form_frame,
-            text="Cadastro de Serviços",
-            font=ctk.CTkFont(size=14, weight="bold"),
-        ).pack(anchor="w", padx=12, pady=(10, 6))
+    return {
+        "listar_todos_os_servicos": listar_todos_os_servicos,
+        "criar_servico": criar_servico,
+        "atualizar_servico": atualizar_servico,
+        "excluir_servico": excluir_servico,
+    }
 
-        ctk.CTkLabel(form_frame, text="Nome do serviço:").pack(anchor="w", padx=12)
-        self.entry_nome = ctk.CTkEntry(
-            form_frame, placeholder_text="Ex.: Corte + Barba"
-        )
-        self.entry_nome.pack(fill="x", padx=12, pady=(2, 6))
 
-        ctk.CTkLabel(form_frame, text="Preço (R$):").pack(anchor="w", padx=12)
-        self.entry_preco = ctk.CTkEntry(
-            form_frame, placeholder_text="Ex.: 45.00"
-        )
-        self.entry_preco.pack(fill="x", padx=12, pady=(2, 8))
+def criar_tela_servicos(master, controller=None):
+    ctrl = controller if controller is not None else _criar_mock_servico()
+    estado = {"selecionado_id": None, "todos": []}
 
-        botoes_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
-        botoes_frame.pack(fill="x", padx=12, pady=(0, 10))
-        botoes_frame.grid_columnconfigure(0, weight=1)
-        botoes_frame.grid_columnconfigure(1, weight=1)
+    frame = ctk.CTkFrame(master, fg_color="transparent")
 
-        ctk.CTkButton(
-            botoes_frame, text="Cadastrar", command=self._cadastrar
-        ).grid(row=0, column=0, sticky="we", padx=(0, 4), pady=(0, 6))
+    form_frame = ctk.CTkFrame(frame, corner_radius=8)
+    form_frame.pack(fill="x", padx=4, pady=(4, 6))
 
-        ctk.CTkButton(
-            botoes_frame,
-            text="Atualizar",
-            fg_color="#2e7d32",
-            hover_color="#1b5e20",
-            command=self._atualizar,
-        ).grid(row=0, column=1, sticky="we", padx=(4, 0), pady=(0, 6))
+    ctk.CTkLabel(
+        form_frame,
+        text="Cadastro de Serviços",
+        font=ctk.CTkFont(size=14, weight="bold"),
+    ).pack(anchor="w", padx=12, pady=(10, 6))
 
-        ctk.CTkButton(
-            botoes_frame,
-            text="Excluir",
-            fg_color="#c62828",
-            hover_color="#8e0000",
-            command=self._excluir,
-        ).grid(row=1, column=0, sticky="we", padx=(0, 4))
+    ctk.CTkLabel(form_frame, text="Nome do serviço:").pack(anchor="w", padx=12)
+    entry_nome = ctk.CTkEntry(form_frame, placeholder_text="Ex.: Corte + Barba")
+    entry_nome.pack(fill="x", padx=12, pady=(2, 6))
 
-        ctk.CTkButton(
-            botoes_frame,
-            text="Limpar",
-            fg_color="#455a64",
-            hover_color="#263238",
-            command=self._limpar_formulario,
-        ).grid(row=1, column=1, sticky="we", padx=(4, 0))
+    ctk.CTkLabel(form_frame, text="Preço (R$):").pack(anchor="w", padx=12)
+    entry_preco = ctk.CTkEntry(form_frame, placeholder_text="Ex.: 45.00")
+    entry_preco.pack(fill="x", padx=12, pady=(2, 8))
 
-        lista_frame = ctk.CTkFrame(self, corner_radius=8)
-        lista_frame.pack(fill="both", expand=True, padx=4, pady=(0, 4))
+    botoes_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
+    botoes_frame.pack(fill="x", padx=12, pady=(0, 10))
+    botoes_frame.grid_columnconfigure(0, weight=1)
+    botoes_frame.grid_columnconfigure(1, weight=1)
 
-        topo_lista = ctk.CTkFrame(lista_frame, fg_color="transparent")
-        topo_lista.pack(fill="x", padx=12, pady=(10, 6))
+    lista_frame = ctk.CTkFrame(frame, corner_radius=8)
+    lista_frame.pack(fill="both", expand=True, padx=4, pady=(0, 4))
 
-        ctk.CTkLabel(
-            topo_lista,
-            text="Serviços Cadastrados",
-            font=ctk.CTkFont(size=14, weight="bold"),
-        ).pack(side="left")
+    topo_lista = ctk.CTkFrame(lista_frame, fg_color="transparent")
+    topo_lista.pack(fill="x", padx=12, pady=(10, 6))
 
-        ctk.CTkButton(
-            topo_lista, text="Atualizar", width=85, height=28, command=self.carregar_servicos
-        ).pack(side="right")
+    ctk.CTkLabel(
+        topo_lista,
+        text="Serviços Cadastrados",
+        font=ctk.CTkFont(size=14, weight="bold"),
+    ).pack(side="left")
 
-        self.entry_busca = ctk.CTkEntry(
-            lista_frame,
-            placeholder_text="Buscar por serviço ou preço...",
-        )
-        self.entry_busca.pack(fill="x", padx=12, pady=(0, 8))
-        self.entry_busca.bind("<KeyRelease>", lambda _event: self._filtrar_tabela())
+    entry_busca = ctk.CTkEntry(
+        lista_frame,
+        placeholder_text="Buscar por serviço ou preço...",
+    )
+    entry_busca.pack(fill="x", padx=12, pady=(0, 8))
 
-        tabela_container = ctk.CTkFrame(lista_frame, fg_color="transparent")
-        tabela_container.pack(fill="both", expand=True, padx=12, pady=(0, 10))
+    tabela_container = ctk.CTkFrame(lista_frame, fg_color="transparent")
+    tabela_container.pack(fill="both", expand=True, padx=12, pady=(0, 10))
 
-        colunas = ("id", "nome", "preco")
-        self.tabela = ttk.Treeview(
-            tabela_container, columns=colunas, show="headings", selectmode="browse"
-        )
-        self.tabela.heading("id", text="ID")
-        self.tabela.heading("nome", text="Serviço")
-        self.tabela.heading("preco", text="Preço")
+    colunas = ("id", "nome", "preco")
+    tabela = ttk.Treeview(
+        tabela_container, columns=colunas, show="headings", selectmode="browse"
+    )
+    tabela.heading("id", text="ID")
+    tabela.heading("nome", text="Serviço")
+    tabela.heading("preco", text="Preço")
 
-        self.tabela.column("id", width=38, anchor="center")
-        self.tabela.column("nome", width=205, anchor="w")
-        self.tabela.column("preco", width=95, anchor="center")
+    tabela.column("id", width=38, anchor="center")
+    tabela.column("nome", width=205, anchor="w")
+    tabela.column("preco", width=95, anchor="center")
 
-        scrollbar = ttk.Scrollbar(
-            tabela_container, orient="vertical", command=self.tabela.yview
-        )
-        self.tabela.configure(yscrollcommand=scrollbar.set)
+    scrollbar = ttk.Scrollbar(
+        tabela_container, orient="vertical", command=tabela.yview
+    )
+    tabela.configure(yscrollcommand=scrollbar.set)
 
-        self.tabela.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+    tabela.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
 
-        self.tabela.bind("<<TreeviewSelect>>", self._ao_selecionar_linha)
-
-    @staticmethod
-    def _extrair_campos(servico) -> tuple:
+    def extrair_campos(servico):
         if isinstance(servico, dict):
             return (
                 servico.get("id"),
@@ -184,8 +148,7 @@ class ServicoView(ctk.CTkFrame):
             float(getattr(servico, "preco", 0)),
         )
 
-    @staticmethod
-    def _converter_preco(texto: str) -> float:
+    def converter_preco(texto: str) -> float:
         valor_limpo = texto.strip().replace("R$", "").replace(",", ".").strip()
         if not valor_limpo:
             raise ValueError("Informe o preço do serviço.")
@@ -197,83 +160,83 @@ class ServicoView(ctk.CTkFrame):
             raise ValueError("O preço do serviço deve ser maior que zero.")
         return round(preco, 2)
 
-    def carregar_servicos(self):
-        try:
-            self._todos_servicos = self.controller.listar_todos_os_servicos() or []
-            self._filtrar_tabela()
-        except Exception as erro:
-            messagebox.showerror("Erro ao listar serviços", str(erro))
+    def filtrar_tabela(_event=None):
+        termo = entry_busca.get().strip().lower()
+        for item in tabela.get_children():
+            tabela.delete(item)
 
-    def _filtrar_tabela(self):
-        termo = self.entry_busca.get().strip().lower()
-        for item in self.tabela.get_children():
-            self.tabela.delete(item)
-
-        for servico in self._todos_servicos:
-            sid, nome, preco = self._extrair_campos(servico)
+        for servico in estado["todos"]:
+            sid, nome, preco = extrair_campos(servico)
             preco_formatado = f"R$ {preco:.2f}"
             if (
                 not termo
                 or termo in str(nome).lower()
                 or termo in preco_formatado.lower()
             ):
-                self.tabela.insert("", "end", values=(sid, nome, preco_formatado))
+                tabela.insert("", "end", values=(sid, nome, preco_formatado))
 
-    def _ao_selecionar_linha(self, _event):
-        selecao = self.tabela.selection()
+    def carregar_servicos():
+        try:
+            estado["todos"] = _chamar(ctrl, "listar_todos_os_servicos") or []
+            filtrar_tabela()
+        except Exception as erro:
+            messagebox.showerror("Erro ao listar serviços", str(erro))
+
+    def ao_selecionar_linha(_event):
+        selecao = tabela.selection()
         if not selecao:
             return
-        valores = self.tabela.item(selecao[0], "values")
-        self.servico_selecionado_id = int(valores[0])
+        valores = tabela.item(selecao[0], "values")
+        estado["selecionado_id"] = int(valores[0])
 
-        self.entry_nome.delete(0, "end")
-        self.entry_nome.insert(0, valores[1])
+        entry_nome.delete(0, "end")
+        entry_nome.insert(0, valores[1])
 
         preco_limpo = str(valores[2]).replace("R$", "").strip()
-        self.entry_preco.delete(0, "end")
-        self.entry_preco.insert(0, preco_limpo)
+        entry_preco.delete(0, "end")
+        entry_preco.insert(0, preco_limpo)
 
-    def _limpar_formulario(self):
-        self.servico_selecionado_id = None
-        self.entry_nome.delete(0, "end")
-        self.entry_preco.delete(0, "end")
-        for item in self.tabela.selection():
-            self.tabela.selection_remove(item)
+    def limpar_formulario():
+        estado["selecionado_id"] = None
+        entry_nome.delete(0, "end")
+        entry_preco.delete(0, "end")
+        for item in tabela.selection():
+            tabela.selection_remove(item)
 
-    def _cadastrar(self):
-        nome = self.entry_nome.get().strip()
+    def cadastrar():
+        nome = entry_nome.get().strip()
         try:
-            preco = self._converter_preco(self.entry_preco.get())
-            self.controller.criar_servico(nome, preco)
+            preco = converter_preco(entry_preco.get())
+            _chamar(ctrl, "criar_servico", nome, preco)
             messagebox.showinfo("Sucesso", "Serviço cadastrado com sucesso!")
-            self._limpar_formulario()
-            self.carregar_servicos()
+            limpar_formulario()
+            carregar_servicos()
         except ValueError as erro:
             messagebox.showwarning("Atenção", str(erro))
         except Exception as erro:
             messagebox.showerror("Erro no banco de dados", str(erro))
 
-    def _atualizar(self):
-        if self.servico_selecionado_id is None:
+    def atualizar():
+        if estado["selecionado_id"] is None:
             messagebox.showwarning(
                 "Atenção", "Selecione um serviço na tabela para alterar."
             )
             return
 
-        nome = self.entry_nome.get().strip()
+        nome = entry_nome.get().strip()
         try:
-            preco = self._converter_preco(self.entry_preco.get())
-            self.controller.atualizar_servico(self.servico_selecionado_id, nome, preco)
+            preco = converter_preco(entry_preco.get())
+            _chamar(ctrl, "atualizar_servico", estado["selecionado_id"], nome, preco)
             messagebox.showinfo("Sucesso", "Serviço atualizado com sucesso!")
-            self._limpar_formulario()
-            self.carregar_servicos()
+            limpar_formulario()
+            carregar_servicos()
         except ValueError as erro:
             messagebox.showwarning("Atenção", str(erro))
         except Exception as erro:
             messagebox.showerror("Erro no banco de dados", str(erro))
 
-    def _excluir(self):
-        if self.servico_selecionado_id is None:
+    def excluir():
+        if estado["selecionado_id"] is None:
             messagebox.showwarning(
                 "Atenção", "Selecione um serviço na tabela para excluir."
             )
@@ -281,17 +244,52 @@ class ServicoView(ctk.CTkFrame):
 
         confirmar = messagebox.askyesno(
             "Confirmar exclusão",
-            f"Deseja mesmo excluir o serviço '{self.entry_nome.get().strip()}'?",
+            f"Deseja mesmo excluir o serviço '{entry_nome.get().strip()}'?",
         )
         if not confirmar:
             return
 
         try:
-            self.controller.excluir_servico(self.servico_selecionado_id)
+            _chamar(ctrl, "excluir_servico", estado["selecionado_id"])
             messagebox.showinfo("Sucesso", "Serviço excluído com sucesso!")
-            self._limpar_formulario()
-            self.carregar_servicos()
+            limpar_formulario()
+            carregar_servicos()
         except ValueError as erro:
             messagebox.showwarning("Atenção", str(erro))
         except Exception as erro:
             messagebox.showerror("Erro no banco de dados", str(erro))
+
+    ctk.CTkButton(botoes_frame, text="Cadastrar", command=cadastrar).grid(
+        row=0, column=0, sticky="we", padx=(0, 4), pady=(0, 6)
+    )
+    ctk.CTkButton(
+        botoes_frame,
+        text="Atualizar",
+        fg_color="#2e7d32",
+        hover_color="#1b5e20",
+        command=atualizar,
+    ).grid(row=0, column=1, sticky="we", padx=(4, 0), pady=(0, 6))
+    ctk.CTkButton(
+        botoes_frame,
+        text="Excluir",
+        fg_color="#c62828",
+        hover_color="#8e0000",
+        command=excluir,
+    ).grid(row=1, column=0, sticky="we", padx=(0, 4))
+    ctk.CTkButton(
+        botoes_frame,
+        text="Limpar",
+        fg_color="#455a64",
+        hover_color="#263238",
+        command=limpar_formulario,
+    ).grid(row=1, column=1, sticky="we", padx=(4, 0))
+
+    ctk.CTkButton(
+        topo_lista, text="Atualizar", width=85, height=28, command=carregar_servicos
+    ).pack(side="right")
+
+    entry_busca.bind("<KeyRelease>", filtrar_tabela)
+    tabela.bind("<<TreeviewSelect>>", ao_selecionar_linha)
+
+    carregar_servicos()
+    return frame
