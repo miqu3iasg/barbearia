@@ -22,27 +22,31 @@ class MainView(ctk.CTk):
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
-        self.title("Sistema de Gerenciamento - Barbearia")
-        self.geometry("1050x650")
-        self.minsize(900, 560)
+        self.title("Barbearia")
+        largura = 420
+        altura = 780
+        pos_x = (self.winfo_screenwidth() - largura) // 2
+        pos_y = (self.winfo_screenheight() - altura) // 2
+        self.geometry(f"{largura}x{altura}+{pos_x}+{pos_y}")
+        self.minsize(380, 680)
 
         self._construir_layout()
 
     def _construir_layout(self):
-        header = ctk.CTkFrame(self, height=60, corner_radius=0)
+        header = ctk.CTkFrame(self, height=50, corner_radius=0)
         header.pack(fill="x", side="top")
 
         titulo = ctk.CTkLabel(
             header,
-            text="BARBEARIA — SISTEMA DE ATENDIMENTO E AGENDA",
-            font=ctk.CTkFont(size=18, weight="bold"),
+            text="BARBEARIA — AGENDA",
+            font=ctk.CTkFont(size=16, weight="bold"),
         )
-        titulo.pack(side="left", padx=20, pady=15)
+        titulo.pack(pady=12)
 
         self.tabview = ctk.CTkTabview(self, corner_radius=8)
-        self.tabview.pack(fill="both", expand=True, padx=16, pady=(10, 16))
+        self.tabview.pack(fill="both", expand=True, padx=8, pady=(4, 10))
 
-        self.tab_agendamentos = self.tabview.add("Agendamentos")
+        self.tab_agendamentos = self.tabview.add("Agenda")
         self.tab_clientes = self.tabview.add("Clientes")
         self.tab_barbeiros = self.tabview.add("Barbeiros")
         self.tab_servicos = self.tabview.add("Serviços")
@@ -64,8 +68,8 @@ class MainView(ctk.CTk):
 
         lbl = ctk.CTkLabel(
             self.tab_agendamentos,
-            text="Tela de Agendamentos e Fila (em construção)",
-            font=ctk.CTkFont(size=15),
+            text="Tela de Agenda e Fila (em construção)",
+            font=ctk.CTkFont(size=14),
         )
         lbl.pack(expand=True)
 

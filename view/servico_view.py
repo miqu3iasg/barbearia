@@ -69,93 +69,84 @@ class ServicoView(ctk.CTkFrame):
 
     def _construir_interface(self):
         form_frame = ctk.CTkFrame(self, corner_radius=8)
-        form_frame.pack(fill="x", padx=10, pady=(10, 8))
+        form_frame.pack(fill="x", padx=4, pady=(4, 6))
 
         ctk.CTkLabel(
             form_frame,
-            text="Cadastro e Tabela de Preços de Serviços",
-            font=ctk.CTkFont(size=15, weight="bold"),
-        ).grid(row=0, column=0, columnspan=4, sticky="w", padx=15, pady=(12, 8))
+            text="Cadastro de Serviços",
+            font=ctk.CTkFont(size=14, weight="bold"),
+        ).pack(anchor="w", padx=12, pady=(10, 6))
 
-        ctk.CTkLabel(form_frame, text="Nome do serviço:").grid(
-            row=1, column=0, sticky="w", padx=(15, 6), pady=6
-        )
+        ctk.CTkLabel(form_frame, text="Nome do serviço:").pack(anchor="w", padx=12)
         self.entry_nome = ctk.CTkEntry(
-            form_frame, placeholder_text="Ex.: Corte + Barba", width=280
+            form_frame, placeholder_text="Ex.: Corte + Barba"
         )
-        self.entry_nome.grid(row=1, column=1, sticky="we", padx=(0, 15), pady=6)
+        self.entry_nome.pack(fill="x", padx=12, pady=(2, 6))
 
-        ctk.CTkLabel(form_frame, text="Preço (R$):").grid(
-            row=1, column=2, sticky="w", padx=(0, 6), pady=6
-        )
+        ctk.CTkLabel(form_frame, text="Preço (R$):").pack(anchor="w", padx=12)
         self.entry_preco = ctk.CTkEntry(
-            form_frame, placeholder_text="Ex.: 45.00", width=180
+            form_frame, placeholder_text="Ex.: 45.00"
         )
-        self.entry_preco.grid(row=1, column=3, sticky="we", padx=(0, 15), pady=6)
-
-        form_frame.grid_columnconfigure(1, weight=2)
-        form_frame.grid_columnconfigure(3, weight=1)
+        self.entry_preco.pack(fill="x", padx=12, pady=(2, 8))
 
         botoes_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
-        botoes_frame.grid(row=2, column=0, columnspan=4, sticky="w", padx=15, pady=(8, 14))
+        botoes_frame.pack(fill="x", padx=12, pady=(0, 10))
+        botoes_frame.grid_columnconfigure(0, weight=1)
+        botoes_frame.grid_columnconfigure(1, weight=1)
 
         ctk.CTkButton(
-            botoes_frame, text="Cadastrar", width=120, command=self._cadastrar
-        ).pack(side="left", padx=(0, 8))
+            botoes_frame, text="Cadastrar", command=self._cadastrar
+        ).grid(row=0, column=0, sticky="we", padx=(0, 4), pady=(0, 6))
 
         ctk.CTkButton(
             botoes_frame,
             text="Atualizar",
-            width=120,
             fg_color="#2e7d32",
             hover_color="#1b5e20",
             command=self._atualizar,
-        ).pack(side="left", padx=(0, 8))
+        ).grid(row=0, column=1, sticky="we", padx=(4, 0), pady=(0, 6))
 
         ctk.CTkButton(
             botoes_frame,
             text="Excluir",
-            width=120,
             fg_color="#c62828",
             hover_color="#8e0000",
             command=self._excluir,
-        ).pack(side="left", padx=(0, 8))
+        ).grid(row=1, column=0, sticky="we", padx=(0, 4))
 
         ctk.CTkButton(
             botoes_frame,
-            text="Limpar Campos",
-            width=120,
+            text="Limpar",
             fg_color="#455a64",
             hover_color="#263238",
             command=self._limpar_formulario,
-        ).pack(side="left")
+        ).grid(row=1, column=1, sticky="we", padx=(4, 0))
 
         lista_frame = ctk.CTkFrame(self, corner_radius=8)
-        lista_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        lista_frame.pack(fill="both", expand=True, padx=4, pady=(0, 4))
 
         topo_lista = ctk.CTkFrame(lista_frame, fg_color="transparent")
-        topo_lista.pack(fill="x", padx=15, pady=(12, 8))
+        topo_lista.pack(fill="x", padx=12, pady=(10, 6))
 
         ctk.CTkLabel(
             topo_lista,
             text="Serviços Cadastrados",
-            font=ctk.CTkFont(size=15, weight="bold"),
+            font=ctk.CTkFont(size=14, weight="bold"),
         ).pack(side="left")
 
-        self.entry_busca = ctk.CTkEntry(
-            topo_lista,
-            placeholder_text="Buscar por serviço ou preço...",
-            width=260,
-        )
-        self.entry_busca.pack(side="right", padx=(8, 0))
-        self.entry_busca.bind("<KeyRelease>", lambda _event: self._filtrar_tabela())
-
         ctk.CTkButton(
-            topo_lista, text="Atualizar Lista", width=120, command=self.carregar_servicos
+            topo_lista, text="Atualizar", width=85, height=28, command=self.carregar_servicos
         ).pack(side="right")
 
+        self.entry_busca = ctk.CTkEntry(
+            lista_frame,
+            placeholder_text="Buscar por serviço ou preço...",
+        )
+        self.entry_busca.pack(fill="x", padx=12, pady=(0, 8))
+        self.entry_busca.bind("<KeyRelease>", lambda _event: self._filtrar_tabela())
+
         tabela_container = ctk.CTkFrame(lista_frame, fg_color="transparent")
-        tabela_container.pack(fill="both", expand=True, padx=15, pady=(0, 14))
+        tabela_container.pack(fill="both", expand=True, padx=12, pady=(0, 10))
 
         colunas = ("id", "nome", "preco")
         self.tabela = ttk.Treeview(
@@ -165,9 +156,9 @@ class ServicoView(ctk.CTkFrame):
         self.tabela.heading("nome", text="Serviço")
         self.tabela.heading("preco", text="Preço")
 
-        self.tabela.column("id", width=70, anchor="center")
-        self.tabela.column("nome", width=440, anchor="w")
-        self.tabela.column("preco", width=200, anchor="center")
+        self.tabela.column("id", width=38, anchor="center")
+        self.tabela.column("nome", width=205, anchor="w")
+        self.tabela.column("preco", width=95, anchor="center")
 
         scrollbar = ttk.Scrollbar(
             tabela_container, orient="vertical", command=self.tabela.yview
