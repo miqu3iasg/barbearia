@@ -3,7 +3,6 @@ import customtkinter as ctk
 
 
 class _MockClienteController:
-    """Simulador em memória usado apenas enquanto o Controller real não é conectado."""
 
     def __init__(self):
         self._clientes = [
@@ -50,7 +49,6 @@ class _MockClienteController:
 
 
 class ClienteView(ctk.CTkFrame):
-    """Tela de gerenciamento (CRUD) de clientes em CustomTkinter."""
 
     def __init__(self, master, controller=None):
         super().__init__(master, fg_color="transparent")
@@ -62,7 +60,6 @@ class ClienteView(ctk.CTkFrame):
         self.carregar_clientes()
 
     def _construir_interface(self):
-        # --- Bloco superior: Formulário ---
         form_frame = ctk.CTkFrame(self, corner_radius=8)
         form_frame.pack(fill="x", padx=10, pady=(10, 8))
 
@@ -91,7 +88,6 @@ class ClienteView(ctk.CTkFrame):
         form_frame.grid_columnconfigure(1, weight=2)
         form_frame.grid_columnconfigure(3, weight=1)
 
-        # Botões de ação do CRUD
         botoes_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
         botoes_frame.grid(row=2, column=0, columnspan=4, sticky="w", padx=15, pady=(8, 14))
 
@@ -126,7 +122,6 @@ class ClienteView(ctk.CTkFrame):
             command=self._limpar_formulario,
         ).pack(side="left")
 
-        # --- Bloco inferior: Busca e Listagem ---
         lista_frame = ctk.CTkFrame(self, corner_radius=8)
         lista_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
@@ -151,7 +146,6 @@ class ClienteView(ctk.CTkFrame):
             topo_lista, text="Atualizar Lista", width=120, command=self.carregar_clientes
         ).pack(side="right")
 
-        # Tabela (ttk.Treeview estilizada para o tema escuro)
         style = ttk.Style()
         style.theme_use("default")
         style.configure(
@@ -197,7 +191,6 @@ class ClienteView(ctk.CTkFrame):
 
     @staticmethod
     def _extrair_campos(cliente) -> tuple:
-        """Lê tanto dicionários quanto objetos Model (Cliente)."""
         if isinstance(cliente, dict):
             return cliente.get("id"), cliente.get("nome", ""), cliente.get("telefone", "")
         return (
