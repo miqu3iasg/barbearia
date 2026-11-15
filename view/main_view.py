@@ -7,6 +7,7 @@ if ROOT_DIR not in sys.path:
 
 import customtkinter as ctk
 
+from view.agendamento_view import AgendamentoView
 from view.barbeiro_view import BarbeiroView
 from view.cliente_view import ClienteView
 from view.servico_view import ServicoView
@@ -51,6 +52,13 @@ class MainView(ctk.CTk):
         self.tab_barbeiros = self.tabview.add("Barbeiros")
         self.tab_servicos = self.tabview.add("Serviços")
 
+        self.agendamento_view = AgendamentoView(
+            self.tab_agendamentos,
+            controllers=self.controllers,
+            controller=self.controllers.get("agendamento"),
+        )
+        self.agendamento_view.pack(fill="both", expand=True)
+
         self.cliente_view = ClienteView(
             self.tab_clientes, controller=self.controllers.get("cliente")
         )
@@ -65,13 +73,6 @@ class MainView(ctk.CTk):
             self.tab_servicos, controller=self.controllers.get("servico")
         )
         self.servico_view.pack(fill="both", expand=True)
-
-        lbl = ctk.CTkLabel(
-            self.tab_agendamentos,
-            text="Tela de Agenda e Fila (em construção)",
-            font=ctk.CTkFont(size=14),
-        )
-        lbl.pack(expand=True)
 
 
 if __name__ == "__main__":
