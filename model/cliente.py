@@ -1,4 +1,4 @@
-class Cliente: 
+class Cliente:
     def __init__(self, id, nome, telefone):
         self.id = id
         self.nome = nome
@@ -7,11 +7,13 @@ class Cliente:
     def validar_nome(self):
 
         if self.nome == "":
-           raise ValueError("O nome do Cliente é obrigatório!")
+            raise ValueError("O nome do Cliente é obrigatório!")
         else:
-           return True
+            return True
 
     def validar_telefone(self):
         if self.telefone == "":
-           return False
-        else: return True
+            return False
+        else:
+            return True
+
