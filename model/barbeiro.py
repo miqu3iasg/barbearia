@@ -1,5 +1,4 @@
 class barbeiro:
-
     def __init__(self, id, nome, status):
         self.id = id
         self.nome = nome
@@ -8,9 +7,12 @@ class barbeiro:
     def verificar_nome(self):
         if self.nome == "":
             raise ValueError("O nome do Barbeiro é obrigatório!")
-        else: return True
+        else:
+            return True
 
     def verificar_disponibilidade(self):
-        if self.status == "Disponível": 
+        if self.status == "Disponível":
             return True
-        else: return False
+        else:
+            return False
+

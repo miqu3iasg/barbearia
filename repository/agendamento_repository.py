@@ -118,4 +118,18 @@ def listar_fila_atendimento(data_agendamento):
         cnx.close()
 
 
-# TODO: def buscar_proximo_da_fila(data_agendamento):
+def buscar_proximo_da_fila(data_agendamento):
+    """Retorna o próximo agendamento da fila de atendimento em uma determinada data.
+
+    Args:
+        data_agendamento: Data a ser consultada, como objeto date ou string no formato
+        'AAAA-MM-DD'.
+
+    Returns:
+        Um dicionário com os dados do próximo agendamento da fila, ou None se não há
+        ninguém na fila para ser atendido.
+    """
+    fila = listar_fila_atendimento(data_agendamento)
+    if len(fila) == 0:
+        return None
+    return fila[0]
