@@ -1,4 +1,14 @@
+import os
+import sys
+
+# Garante que a raiz do projeto esteja no path mesmo rodando pelo botão Play
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 import customtkinter as ctk
+
+from view.cliente_view import ClienteView
 
 
 class MainView(ctk.CTk):
@@ -37,9 +47,15 @@ class MainView(ctk.CTk):
         self.tab_barbeiros = self.tabview.add("Barbeiros")
         self.tab_servicos = self.tabview.add("Serviços")
 
+        # Aba Clientes integrada
+        self.cliente_view = ClienteView(
+            self.tab_clientes, controller=self.controllers.get("cliente")
+        )
+        self.cliente_view.pack(fill="both", expand=True)
+
+        # Abas seguintes que faremos em sequência
         for aba, texto in [
             (self.tab_agendamentos, "Tela de Agendamentos e Fila (em construção)"),
-            (self.tab_clientes, "Tela de Cadastro de Clientes (em construção)"),
             (self.tab_barbeiros, "Tela de Barbeiros (em construção)"),
             (self.tab_servicos, "Tela de Serviços e Preços (em construção)"),
         ]:
