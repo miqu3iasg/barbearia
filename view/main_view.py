@@ -9,6 +9,7 @@ import customtkinter as ctk
 
 from view.barbeiro_view import BarbeiroView
 from view.cliente_view import ClienteView
+from view.servico_view import ServicoView
 
 
 class MainView(ctk.CTk):
@@ -56,12 +57,17 @@ class MainView(ctk.CTk):
         )
         self.barbeiro_view.pack(fill="both", expand=True)
 
-        for aba, texto in [
-            (self.tab_agendamentos, "Tela de Agendamentos e Fila (em construção)"),
-            (self.tab_servicos, "Tela de Serviços e Preços (em construção)"),
-        ]:
-            lbl = ctk.CTkLabel(aba, text=texto, font=ctk.CTkFont(size=15))
-            lbl.pack(expand=True)
+        self.servico_view = ServicoView(
+            self.tab_servicos, controller=self.controllers.get("servico")
+        )
+        self.servico_view.pack(fill="both", expand=True)
+
+        lbl = ctk.CTkLabel(
+            self.tab_agendamentos,
+            text="Tela de Agendamentos e Fila (em construção)",
+            font=ctk.CTkFont(size=15),
+        )
+        lbl.pack(expand=True)
 
 
 if __name__ == "__main__":
