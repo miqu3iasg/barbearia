@@ -1,4 +1,4 @@
-from connection import connect
+from database.connection import connect
 
 
 def criar_agendamento(
