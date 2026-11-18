@@ -1,6 +1,8 @@
 from tkinter import messagebox, ttk
 import customtkinter as ctk
 
+from controller import barbeiro_controller
+
 
 def _chamar(ctrl, funcao: str, *args):
     if isinstance(ctrl, dict):
@@ -14,69 +16,8 @@ def _tem_funcao(ctrl, funcao: str) -> bool:
     return hasattr(ctrl, funcao)
 
 
-def _criar_mock_barbeiro():
-    dados = {
-        "lista": [
-            {"id": 1, "nome": "Wild", "status": "Disponível"},
-            {"id": 2, "nome": "Alexandre de Moraes", "status": "Disponível"},
-            {"id": 3, "nome": "Ximbinha", "status": "Disponível"},
-            {"id": 4, "nome": "Cleito Rasta", "status": "Disponível"},
-        ],
-        "proximo_id": 5,
-    }
-
-    def validar(nome: str, status: str):
-        if not nome.strip():
-            raise ValueError("O nome do barbeiro é obrigatório.")
-        if status not in ("Disponível", "Ocupado"):
-            raise ValueError("Status inválido. Escolha 'Disponível' ou 'Ocupado'.")
-
-    def listar_todos_os_barbeiros():
-        return list(dados["lista"])
-
-    def criar_barbeiro(nome: str, status: str = "Disponível"):
-        validar(nome, status)
-        novo_id = dados["proximo_id"]
-        dados["lista"].append({"id": novo_id, "nome": nome.strip(), "status": status})
-        dados["proximo_id"] += 1
-        return novo_id
-
-    def atualizar_barbeiro(barbeiro_id: int, nome: str, status: str):
-        validar(nome, status)
-        for barbeiro in dados["lista"]:
-            if barbeiro["id"] == barbeiro_id:
-                barbeiro["nome"] = nome.strip()
-                barbeiro["status"] = status
-                return True
-        return False
-
-    def atualizar_status_do_barbeiro(barbeiro_id: int, status: str):
-        if status not in ("Disponível", "Ocupado"):
-            raise ValueError("Status inválido. Use 'Disponível' ou 'Ocupado'.")
-        for barbeiro in dados["lista"]:
-            if barbeiro["id"] == barbeiro_id:
-                barbeiro["status"] = status
-                return True
-        return False
-
-    def excluir_barbeiro(barbeiro_id: int):
-        for i, barbeiro in enumerate(dados["lista"]):
-            if barbeiro["id"] == barbeiro_id:
-                dados["lista"].pop(i)
-                return True
-        return False
-
-    return {
-        "listar_todos_os_barbeiros": listar_todos_os_barbeiros,
-        "criar_barbeiro": criar_barbeiro,
-        "atualizar_barbeiro": atualizar_barbeiro,
-        "atualizar_status_do_barbeiro": atualizar_status_do_barbeiro,
-        "excluir_barbeiro": excluir_barbeiro,
-    }
-
-
 def criar_tela_barbeiros(master, controller=None):
-    ctrl = controller if controller is not None else _criar_mock_barbeiro()
+    ctrl = controller if controller is not None else barbeiro_controller
     estado = {"selecionado_id": None, "todos": []}
 
     frame = ctk.CTkFrame(master, fg_color="transparent")
@@ -173,7 +114,7 @@ def criar_tela_barbeiros(master, controller=None):
 
     def carregar_barbeiros():
         try:
-            estado["todos"] = _chamar(ctrl, "listar_todos_os_barbeiros") or []
+            estado["todos"] = _chamar(ctrl, "listar_barbeiros") or []
             filtrar_tabela()
         except Exception as erro:
             messagebox.showerror("Erro ao listar barbeiros", str(erro))
@@ -201,7 +142,7 @@ def criar_tela_barbeiros(master, controller=None):
         nome = entry_nome.get().strip()
         status = option_status.get()
         try:
-            _chamar(ctrl, "criar_barbeiro", nome, status)
+            _chamar(ctrl, "cadastrar_barbeiro", nome, status)
             messagebox.showinfo("Sucesso", "Barbeiro cadastrado com sucesso!")
             limpar_formulario()
             carregar_barbeiros()
@@ -239,10 +180,10 @@ def criar_tela_barbeiros(master, controller=None):
         status_atual = option_status.get()
         novo_status = "Ocupado" if status_atual == "Disponível" else "Disponível"
         try:
-            if _tem_funcao(ctrl, "atualizar_status_do_barbeiro"):
+            if _tem_funcao(ctrl, "atualizar_status_barbeiro"):
                 _chamar(
                     ctrl,
-                    "atualizar_status_do_barbeiro",
+                    "atualizar_status_barbeiro",
                     estado["selecionado_id"],
                     novo_status,
                 )

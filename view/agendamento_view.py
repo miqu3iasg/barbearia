@@ -1,147 +1,25 @@
-from datetime import date
+from datetime import date, timedelta
 from tkinter import messagebox, ttk
 import customtkinter as ctk
 
-
-HORARIOS_PADRAO = [
-    "08:00",
-    "09:00",
-    "10:00",
-    "11:00",
-    "13:00",
-    "14:00",
-    "15:00",
-    "16:00",
-    "17:00",
-    "18:00",
-    "19:00",
-]
-
-
-def _criar_mock_agendamento():
-    hoje = date.today().isoformat()
-    dados = {
-        "clientes": [
-            {"id": 1, "nome": "João Silva", "telefone": "11999998888"},
-            {"id": 2, "nome": "Carlos Souza", "telefone": "11988887777"},
-        ],
-        "barbeiros": [
-            {"id": 1, "nome": "Wild", "status": "Disponível"},
-            {"id": 2, "nome": "Alexandre de Moraes", "status": "Disponível"},
-            {"id": 3, "nome": "Ximbinha", "status": "Disponível"},
-            {"id": 4, "nome": "Cleito Rasta", "status": "Disponível"},
-        ],
-        "servicos": [
-            {"id": 1, "nome": "Degradê", "preco": 35.00},
-            {"id": 2, "nome": "Social", "preco": 30.00},
-            {"id": 5, "nome": "Barba", "preco": 25.00},
-            {"id": 10, "nome": "Corte + Barba", "preco": 55.00},
-        ],
-        "agendamentos": [
-            {
-                "agendamento_id": 1,
-                "cliente_id": 1,
-                "cliente": "João Silva",
-                "barbeiro_id": 1,
-                "barbeiro": "Wild",
-                "servico_id": 1,
-                "servico": "Degradê",
-                "data_agendamento": hoje,
-                "horario": "09:00",
-                "pagamento": "APOS_CORTE",
-                "observacao": None,
-            }
-        ],
-        "proximo_id": 2,
-    }
-
-    def listar_todos_os_clientes():
-        return list(dados["clientes"])
-
-    def listar_todos_os_barbeiros():
-        return list(dados["barbeiros"])
-
-    def listar_todos_os_servicos():
-        return list(dados["servicos"])
-
-    def listar_horarios_ocupados(barbeiro_id: int, data_agendamento: str):
-        return [
-            ag["horario"]
-            for ag in dados["agendamentos"]
-            if ag["barbeiro_id"] == barbeiro_id
-            and str(ag["data_agendamento"]) == str(data_agendamento)
-        ]
-
-    def listar_fila_atendimento(data_agendamento: str):
-        fila = [
-            {
-                "agendamento_id": ag["agendamento_id"],
-                "cliente": ag["cliente"],
-                "servico": ag["servico"],
-                "barbeiro": ag["barbeiro"],
-                "horario": ag["horario"],
-            }
-            for ag in dados["agendamentos"]
-            if str(ag["data_agendamento"]) == str(data_agendamento)
-        ]
-        return sorted(fila, key=lambda item: item["horario"])
-
-    def criar_agendamento(
-        cliente_id: int,
-        barbeiro_id: int,
-        servico_id: int,
-        data_agendamento: str,
-        horario: str,
-        pagamento: str,
-        observacao: str | None = None,
-    ):
-        if pagamento not in ("APOS_CORTE", "PIX_ONLINE"):
-            raise ValueError("Forma de pagamento inválida.")
-        if horario in listar_horarios_ocupados(barbeiro_id, data_agendamento):
-            raise ValueError("Este barbeiro já possui agendamento nesse horário.")
-
-        cliente_nome = next(
-            (c["nome"] for c in dados["clientes"] if c["id"] == cliente_id), "Cliente"
-        )
-        barbeiro_nome = next(
-            (b["nome"] for b in dados["barbeiros"] if b["id"] == barbeiro_id), "Barbeiro"
-        )
-        servico_nome = next(
-            (s["nome"] for s in dados["servicos"] if s["id"] == servico_id), "Serviço"
-        )
-
-        novo_id = dados["proximo_id"]
-        dados["agendamentos"].append(
-            {
-                "agendamento_id": novo_id,
-                "cliente_id": cliente_id,
-                "cliente": cliente_nome,
-                "barbeiro_id": barbeiro_id,
-                "barbeiro": barbeiro_nome,
-                "servico_id": servico_id,
-                "servico": servico_nome,
-                "data_agendamento": data_agendamento,
-                "horario": horario,
-                "pagamento": pagamento,
-                "observacao": observacao,
-            }
-        )
-        dados["proximo_id"] += 1
-        return novo_id
-
-    return {
-        "listar_todos_os_clientes": listar_todos_os_clientes,
-        "listar_todos_os_barbeiros": listar_todos_os_barbeiros,
-        "listar_todos_os_servicos": listar_todos_os_servicos,
-        "listar_horarios_ocupados": listar_horarios_ocupados,
-        "listar_fila_atendimento": listar_fila_atendimento,
-        "criar_agendamento": criar_agendamento,
-    }
+from controller import (
+    agendamento_controller,
+    barbeiro_controller,
+    cliente_controller,
+    servico_controller,
+)
 
 
 def criar_tela_agendamentos(master, controllers=None, controller=None):
-    ctrls = controllers or {}
-    mock = _criar_mock_agendamento()
+    ctrls = {
+        "agendamento": controller or agendamento_controller,
+        "cliente": cliente_controller,
+        "barbeiro": barbeiro_controller,
+        "servico": servico_controller,
+    }
+    if controllers:
+        ctrls.update(controllers)
+
     mapas = {"clientes": {}, "barbeiros": {}, "servicos": {}}
 
     def executar(dominio: str, metodo: str, *args, **kwargs):
@@ -150,11 +28,7 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
             return ctrl[metodo](*args, **kwargs)
         if ctrl is not None and hasattr(ctrl, metodo):
             return getattr(ctrl, metodo)(*args, **kwargs)
-        if isinstance(controller, dict) and metodo in controller:
-            return controller[metodo](*args, **kwargs)
-        if controller is not None and hasattr(controller, metodo):
-            return getattr(controller, metodo)(*args, **kwargs)
-        return mock[metodo](*args, **kwargs)
+        raise AttributeError(f"Função '{metodo}' não encontrada em '{dominio}'.")
 
     def campo(item, chave: str, padrao=""):
         if isinstance(item, dict):
@@ -162,6 +36,9 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
         return getattr(item, chave, padrao)
 
     def normalizar_hora(valor) -> str:
+        if isinstance(valor, timedelta):
+            minutos = int(valor.total_seconds()) // 60
+            return f"{minutos // 60:02d}:{minutos % 60:02d}"
         texto = str(valor).strip()
         partes = texto.split(":")
         if len(partes) >= 2:
@@ -206,11 +83,12 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
         row=0, column=1, sticky="w", padx=(4, 0)
     )
 
-    entry_data = ctk.CTkEntry(linha_data_hora, placeholder_text="2026-11-15")
+    entry_data = ctk.CTkEntry(linha_data_hora, placeholder_text="2026-11-18")
     entry_data.insert(0, date.today().isoformat())
     entry_data.grid(row=1, column=0, sticky="we", padx=(0, 4), pady=(2, 0))
 
-    option_horario = ctk.CTkOptionMenu(linha_data_hora, values=HORARIOS_PADRAO)
+    horarios_iniciais = list(agendamento_controller.HORARIOS_ATENDIMENTO)
+    option_horario = ctk.CTkOptionMenu(linha_data_hora, values=horarios_iniciais)
     option_horario.grid(row=1, column=1, sticky="we", padx=(4, 0), pady=(2, 0))
 
     ctk.CTkLabel(form_frame, text="Forma de pagamento:").pack(anchor="w", padx=12)
@@ -252,7 +130,7 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
     entry_data_fila.pack(side="left", fill="x", expand=True, padx=(0, 6))
 
     tabela_container = ctk.CTkFrame(fila_frame, fg_color="transparent")
-    tabela_container.pack(fill="both", expand=True, padx=12, pady=(0, 10))
+    tabela_container.pack(fill="both", expand=True, padx=12, pady=(0, 8))
 
     colunas = ("horario", "cliente", "servico", "barbeiro")
     tabela = ttk.Treeview(
@@ -260,7 +138,7 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
         columns=colunas,
         show="headings",
         selectmode="browse",
-        height=7,
+        height=6,
     )
     tabela.heading("horario", text="Hora")
     tabela.heading("cliente", text="Cliente")
@@ -280,27 +158,29 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
     tabela.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
 
+    acoes_fila = ctk.CTkFrame(fila_frame, fg_color="transparent")
+    acoes_fila.pack(fill="x", padx=12, pady=(0, 10))
+    acoes_fila.grid_columnconfigure(0, weight=1)
+    acoes_fila.grid_columnconfigure(1, weight=1)
+
     def atualizar_horarios_livres(_event=None):
         barbeiro_label = option_barbeiro.get()
         barbeiro_id = mapas["barbeiros"].get(barbeiro_label)
         data_str = entry_data.get().strip()
 
         if barbeiro_id is None or not data_str:
-            option_horario.configure(values=HORARIOS_PADRAO)
-            option_horario.set(HORARIOS_PADRAO[0])
+            option_horario.configure(values=horarios_iniciais)
+            option_horario.set(horarios_iniciais[0])
             return
 
         try:
             date.fromisoformat(data_str)
-            ocupados_bruto = (
+            livres = (
                 executar(
-                    "agendamento", "listar_horarios_ocupados", barbeiro_id, data_str
+                    "agendamento", "listar_horarios_livres", barbeiro_id, data_str
                 )
                 or []
             )
-            ocupados = {normalizar_hora(h) for h in ocupados_bruto}
-            livres = [h for h in HORARIOS_PADRAO if h not in ocupados]
-
             if livres:
                 option_horario.configure(values=livres)
                 option_horario.set(livres[0])
@@ -314,7 +194,7 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
 
     def carregar_opcoes():
         try:
-            clientes = executar("cliente", "listar_todos_os_clientes") or []
+            clientes = executar("cliente", "listar_clientes") or []
             mapas["clientes"] = {}
             for c in clientes:
                 cid = int(campo(c, "id"))
@@ -324,12 +204,13 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
             if mapas["clientes"]:
                 opcoes_c = list(mapas["clientes"].keys())
                 option_cliente.configure(values=opcoes_c)
-                option_cliente.set(opcoes_c[0])
+                if option_cliente.get() not in mapas["clientes"]:
+                    option_cliente.set(opcoes_c[0])
             else:
                 option_cliente.configure(values=["Nenhum cliente"])
                 option_cliente.set("Nenhum cliente")
 
-            barbeiros = executar("barbeiro", "listar_todos_os_barbeiros") or []
+            barbeiros = executar("barbeiro", "listar_barbeiros") or []
             mapas["barbeiros"] = {}
             for b in barbeiros:
                 bid = int(campo(b, "id"))
@@ -339,12 +220,13 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
             if mapas["barbeiros"]:
                 opcoes_b = list(mapas["barbeiros"].keys())
                 option_barbeiro.configure(values=opcoes_b)
-                option_barbeiro.set(opcoes_b[0])
+                if option_barbeiro.get() not in mapas["barbeiros"]:
+                    option_barbeiro.set(opcoes_b[0])
             else:
                 option_barbeiro.configure(values=["Nenhum barbeiro"])
                 option_barbeiro.set("Nenhum barbeiro")
 
-            servicos = executar("servico", "listar_todos_os_servicos") or []
+            servicos = executar("servico", "listar_servicos") or []
             mapas["servicos"] = {}
             for s in servicos:
                 sid = int(campo(s, "id"))
@@ -355,7 +237,8 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
             if mapas["servicos"]:
                 opcoes_s = list(mapas["servicos"].keys())
                 option_servico.configure(values=opcoes_s)
-                option_servico.set(opcoes_s[0])
+                if option_servico.get() not in mapas["servicos"]:
+                    option_servico.set(opcoes_s[0])
             else:
                 option_servico.configure(values=["Nenhum serviço"])
                 option_servico.set("Nenhum serviço")
@@ -375,18 +258,79 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
             return
 
         try:
-            fila = executar("agendamento", "listar_fila_atendimento", data_str) or []
+            fila = executar("agendamento", "ver_fila_do_dia", data_str) or []
             for item in tabela.get_children():
                 tabela.delete(item)
 
             for ag in fila:
+                ag_id = campo(ag, "id", None)
+                if ag_id is None:
+                    ag_id = campo(ag, "agendamento_id", None)
                 horario = normalizar_hora(campo(ag, "horario", ""))
                 cliente = campo(ag, "cliente", "")
                 servico = campo(ag, "servico", "")
                 barbeiro = campo(ag, "barbeiro", "")
-                tabela.insert("", "end", values=(horario, cliente, servico, barbeiro))
+                if ag_id is not None:
+                    tabela.insert(
+                        "",
+                        "end",
+                        iid=str(ag_id),
+                        values=(horario, cliente, servico, barbeiro),
+                    )
+                else:
+                    tabela.insert(
+                        "", "end", values=(horario, cliente, servico, barbeiro)
+                    )
         except Exception as erro:
             messagebox.showerror("Erro ao carregar fila", str(erro))
+
+    def _id_fila_selecionado():
+        selecao = tabela.selection()
+        if not selecao:
+            messagebox.showwarning(
+                "Atenção", "Selecione um atendimento na fila primeiro."
+            )
+            return None
+        item_id = selecao[0]
+        if not str(item_id).isdigit():
+            messagebox.showwarning(
+                "Atenção", "Não foi possível identificar o ID deste agendamento."
+            )
+            return None
+        return int(item_id)
+
+    def concluir_selecionado():
+        ag_id = _id_fila_selecionado()
+        if ag_id is None:
+            return
+        try:
+            executar("agendamento", "concluir_atendimento", ag_id)
+            messagebox.showinfo("Sucesso", "Atendimento concluído!")
+            carregar_fila()
+        except ValueError as erro:
+            messagebox.showwarning("Atenção", str(erro))
+        except Exception as erro:
+            messagebox.showerror("Erro no banco de dados", str(erro))
+
+    def cancelar_selecionado():
+        ag_id = _id_fila_selecionado()
+        if ag_id is None:
+            return
+        confirmar = messagebox.askyesno(
+            "Confirmar cancelamento",
+            "Deseja mesmo cancelar este agendamento?",
+        )
+        if not confirmar:
+            return
+        try:
+            executar("agendamento", "cancelar_agendamento", ag_id)
+            messagebox.showinfo("Sucesso", "Agendamento cancelado!")
+            carregar_fila()
+            atualizar_horarios_livres()
+        except ValueError as erro:
+            messagebox.showwarning("Atenção", str(erro))
+        except Exception as erro:
+            messagebox.showerror("Erro no banco de dados", str(erro))
 
     def limpar_formulario():
         entry_data.delete(0, "end")
@@ -428,7 +372,7 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
         try:
             executar(
                 "agendamento",
-                "criar_agendamento",
+                "agendar",
                 cliente_id,
                 barbeiro_id,
                 servico_id,
@@ -446,6 +390,10 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
             messagebox.showwarning("Atenção", str(erro))
         except Exception as erro:
             messagebox.showerror("Erro no banco de dados", str(erro))
+
+    def recarregar_tudo():
+        carregar_opcoes()
+        carregar_fila()
 
     ctk.CTkButton(
         topo_form,
@@ -485,6 +433,23 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
         width=90,
         command=carregar_fila,
     ).pack(side="right")
+
+    ctk.CTkButton(
+        acoes_fila,
+        text="Concluir Atendimento",
+        fg_color="#2e7d32",
+        hover_color="#1b5e20",
+        command=concluir_selecionado,
+    ).grid(row=0, column=0, sticky="we", padx=(0, 4))
+    ctk.CTkButton(
+        acoes_fila,
+        text="Cancelar Agendamento",
+        fg_color="#c62828",
+        hover_color="#8e0000",
+        command=cancelar_selecionado,
+    ).grid(row=0, column=1, sticky="we", padx=(4, 0))
+
+    frame.recarregar_tudo = recarregar_tudo
 
     carregar_opcoes()
     carregar_fila()
