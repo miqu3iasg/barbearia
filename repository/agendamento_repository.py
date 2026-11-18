@@ -1,3 +1,5 @@
+from typing import cast
+
 from database.connection import connect
 
 
@@ -9,7 +11,7 @@ def criar_agendamento(
     horario: str,
     pagamento: str,
     observacao: str = None,  # Recebe None como valor default
-):
+) -> int:
     """Cria um novo agendamento e salva no banco de dados.
 
     Args:
@@ -58,7 +60,7 @@ def criar_agendamento(
             ),
         )
         cnx.commit()
-        return cursor.lastrowid
+        return cast(int, cursor.lastrowid)
     except Exception:
         cnx.rollback()
         raise

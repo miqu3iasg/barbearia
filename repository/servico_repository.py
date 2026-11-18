@@ -1,7 +1,9 @@
+from typing import cast
+
 from database.connection import connect
 
 
-def criar_servico(nome: str, preco: float):
+def criar_servico(nome: str, preco: float) -> int:
     """Cria um novo serviço e salva ele no banco de dados.
 
     Args:
@@ -9,8 +11,10 @@ def criar_servico(nome: str, preco: float):
         preco: Preço do serviço. Deve ser maior que zero.
 
     Returns:
-        O ID do novo serviço cadastrado, ou None se nenhuma linha foi inserida no
-        banco de dados.
+        O ID do novo serviço cadastrado.
+
+    Raises:
+        mysql.connector.Error: Se a inserção falhar.
     """
     query = "INSERT INTO servico(nome, preco) VALUES (%s, %s)"
     cnx = connect()
@@ -18,7 +22,7 @@ def criar_servico(nome: str, preco: float):
         cursor = cnx.cursor()
         cursor.execute(query, (nome, preco))
         cnx.commit()
-        return cursor.lastrowid
+        return cast(int, cursor.lastrowid)
     except Exception:
         cnx.rollback()
         raise
@@ -26,8 +30,8 @@ def criar_servico(nome: str, preco: float):
         cnx.close()
 
 
-def buscar_servico_por_id(servico_id):
-    """Retorna um serviço pelo ID
+def buscar_servico_por_id(servico_id: int):
+    """Retorna um serviço pelo ID.
 
     Args:
         servico_id: Identificador único do serviço no banco de dados.
@@ -52,7 +56,7 @@ def listar_todos_os_servicos():
     Returns:
         Uma lista de dicionários com todos os dados de serviços cadastrados.
     """
-    query = "SELECT id, nome preco FROM servico"
+    query = "SELECT id, nome, preco FROM servico"
     cnx = connect()
     try:
         cursor = cnx.cursor(dictionary=True)
@@ -71,10 +75,10 @@ def atualizar_servico(servico_id: int, nome: str, preco: float):
         preco: Preço do serviço. Deve ser maior que zero.
 
     Returns:
-        True se o serviço foi encontrado e atualizado com sucesso, ou False se não
-        existe serviço com o id cadastrado.
+        True se o serviço foi atualizado, ou False se não existe serviço com o id
+        cadastrado ou se os dados informados já eram iguais aos salvos.
     """
-    query = "UPDATE set nome = %s, preco = %s FROM servico WHERE id = %s"
+    query = "UPDATE servico SET nome = %s, preco = %s WHERE id = %s"
     cnx = connect()
     try:
         cursor = cnx.cursor()

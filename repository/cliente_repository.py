@@ -1,16 +1,20 @@
+from typing import cast
+
 from database.connection import connect
 
 
-def criar_cliente(nome: str, telefone: int):
+def criar_cliente(nome: str, telefone: str) -> int:
     """Cria um novo cliente e salva ele no banco de dados.
 
     Args:
         nome: Nome do cliente a ser salvo.
-        telefone: Telefone do cliente.
+        telefone: Telefone do cliente, apenas dígitos (ex. '75999990000').
 
     Returns:
-        O ID do novo cliente salvo, ou None se nenhuma linha foi inserida no banco de
-        dados.
+        O ID do novo cliente salvo.
+
+    Raises:
+        mysql.connector.Error: Se a inserção falhar.
     """
     query = "INSERT INTO cliente(nome, telefone) VALUES (%s, %s)"
     cnx = connect()
@@ -18,7 +22,7 @@ def criar_cliente(nome: str, telefone: int):
         cursor = cnx.cursor()
         cursor.execute(query, (nome, telefone))
         cnx.commit()
-        return cursor.lastrowid
+        return cast(int, cursor.lastrowid)
     except Exception:
         cnx.rollback()
         raise
@@ -85,17 +89,17 @@ def excluir_cliente(cliente_id: int):
         cnx.close()
 
 
-def atualizar_cliente(cliente_id: int, nome: str, telefone: int):
+def atualizar_cliente(cliente_id: int, nome: str, telefone: str):
     """Atualiza todos os campos no banco de dados de um cliente já cadastrado.
 
     Args:
         cliente_id: Identificador único do cliente no banco de dados.
         nome: Nome do cliente a ser salvo.
-        telefone: Telefone do cliente.
+        telefone: Telefone do cliente, apenas dígitos (ex.: '75999990000').
 
     Returns:
-        True se o cliente foi encontrado e atualizado com sucesso, ou False se não
-        existe cliente com o id cadastrado.
+        True se o cliente foi atualizado, ou False se não existe cliente com o id
+        cadastrado ou se os dados informados já eram iguais aos salvos.
     """
     query = "UPDATE cliente SET nome=%s, telefone=%s WHERE id=%s"
     cnx = connect()

@@ -1,7 +1,9 @@
+from typing import cast
+
 from database.connection import connect
 
 
-def criar_barbeiro(nome: str, status: str):
+def criar_barbeiro(nome: str, status: str) -> int:
     """Cria um novo barbeiro e salva ele no banco de dados.
 
     Args:
@@ -10,8 +12,10 @@ def criar_barbeiro(nome: str, status: str):
         no banco de dados é 'Disponível'.
 
     Returns:
-        O ID do novo barbeiro cadastrado, ou None se nenhuma linha foi inserida no
-        banco de dados.
+        O ID do novo barbeiro cadastrado.
+
+    Raises:
+        mysql.connector.Error: Se a inserção falhar.
     """
     query = "INSERT INTO barbeiro(nome, status) VALUES (%s, %s)"
     cnx = connect()
@@ -19,7 +23,7 @@ def criar_barbeiro(nome: str, status: str):
         cursor = cnx.cursor()
         cursor.execute(query, (nome, status))
         cnx.commit()
-        return cursor.lastrowid
+        return cast(int, cursor.lastrowid)
     except Exception:
         cnx.rollback()
         raise
@@ -66,7 +70,7 @@ def excluir_barbeiro(barbeiro_id: int):
     """Exclui um barbeiro do banco de dados.
 
     Args:
-        barbeiro_id: Identiicador único do barbeiro no banco de dados.
+        barbeiro_id: Identificador único do barbeiro no banco de dados.
 
     Returns:
         True se o barbeiro foi encontrado e deletado com sucesso, ou False se não existe
@@ -95,8 +99,8 @@ def atualizar_barbeiro(barbeiro_id: int, nome: str, status: str):
         status: Disponibilidade do barbeiro ('Disponível' ou 'Ocupado').
 
     Returns:
-        True se o barbeiro foi encontrado e atualizado com sucesso, ou False se não
-        existe barbeiro com o id cadastrado.
+        True se o barbeiro foi atualizado, ou False se não existe barbeiro com o id
+        cadastrado ou se os dados informados já eram iguais aos salvos.
     """
     query = "UPDATE barbeiro SET nome=%s, status=%s WHERE id=%s"
     cnx = connect()
@@ -120,8 +124,8 @@ def atualizar_status_do_barbeiro(barbeiro_id: int, status: str):
         status: Disponibilidade do barbeiro ('Disponível' ou 'Ocupado').
 
     Returns:
-        True se o barbeiro foi encontrado e atualizado com sucesso, ou False se não
-        existe barbeiro com o id cadastrado.
+        True se o barbeiro foi atualizado, ou False se não existe barbeiro com o id
+        cadastrado ou se os dados informados já eram iguais aos salvos.
     """
     query = "UPDATE barbeiro set status=%s WHERE id=%s"
     cnx = connect()
