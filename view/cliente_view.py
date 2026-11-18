@@ -1,4 +1,5 @@
 from tkinter import messagebox, ttk
+
 import customtkinter as ctk
 
 from controller import cliente_controller
@@ -89,9 +90,7 @@ def criar_tela_clientes(master, controller=None):
     tabela.column("nome", width=185, anchor="w")
     tabela.column("telefone", width=115, anchor="center")
 
-    scrollbar = ttk.Scrollbar(
-        tabela_container, orient="vertical", command=tabela.yview
-    )
+    scrollbar = ttk.Scrollbar(tabela_container, orient="vertical", command=tabela.yview)
     tabela.configure(yscrollcommand=scrollbar.set)
 
     tabela.pack(side="left", fill="both", expand=True)
@@ -99,7 +98,11 @@ def criar_tela_clientes(master, controller=None):
 
     def extrair_campos(cliente):
         if isinstance(cliente, dict):
-            return cliente.get("id"), cliente.get("nome", ""), cliente.get("telefone", "")
+            return (
+                cliente.get("id"),
+                cliente.get("nome", ""),
+                cliente.get("telefone", ""),
+            )
         return (
             getattr(cliente, "id", ""),
             getattr(cliente, "nome", ""),
@@ -113,7 +116,11 @@ def criar_tela_clientes(master, controller=None):
 
         for cliente in estado["todos"]:
             cid, nome, telefone = extrair_campos(cliente)
-            if not termo or termo in str(nome).lower() or termo in str(telefone).lower():
+            if (
+                not termo
+                or termo in str(nome).lower()
+                or termo in str(telefone).lower()
+            ):
                 tabela.insert("", "end", values=(cid, nome, telefone))
 
     def carregar_clientes():
@@ -158,7 +165,9 @@ def criar_tela_clientes(master, controller=None):
 
     def atualizar():
         if estado["selecionado_id"] is None:
-            messagebox.showwarning("Atenção", "Selecione um cliente na tabela para alterar.")
+            messagebox.showwarning(
+                "Atenção", "Selecione um cliente na tabela para alterar."
+            )
             return
 
         nome = entry_nome.get().strip()
@@ -175,7 +184,9 @@ def criar_tela_clientes(master, controller=None):
 
     def excluir():
         if estado["selecionado_id"] is None:
-            messagebox.showwarning("Atenção", "Selecione um cliente na tabela para excluir.")
+            messagebox.showwarning(
+                "Atenção", "Selecione um cliente na tabela para excluir."
+            )
             return
 
         confirmar = messagebox.askyesno(

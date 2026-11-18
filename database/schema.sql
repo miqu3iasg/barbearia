@@ -1,7 +1,7 @@
 -- utf8mb4 para salvar os acentos corretamente
-CREATE DATABASE IF NOT EXISTS barbearia CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS barbearia_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE barbearia;
+USE barbearia_db;
 
 -- --------------------------- tabelas ---------------------------
 CREATE TABLE cliente (

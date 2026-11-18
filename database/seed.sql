@@ -1,4 +1,4 @@
-USE barbearia;
+USE barbearia_db;
 
 INSERT INTO
     servico (id, nome, preco)

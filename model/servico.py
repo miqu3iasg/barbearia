@@ -5,14 +5,7 @@ class servico:
         self.preco = preco
 
     def validar_nome(self):
-        if self.id == "":
-            return False
-        else:
-            return True
+        return self.nome != ""
 
     def validar_preco(self):
-        if self.preco > 0:
-            return True
-        else:
-            return False
-
+        return self.preco > 0

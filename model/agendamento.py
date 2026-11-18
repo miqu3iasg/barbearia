@@ -22,13 +22,13 @@ class agendamento:
         self.status = status
 
     def validar_agendamento(self):
-        if self.cliente_id == "" or self.barbeiro_id == "" or self.servico_id == "":
+        if (
+            self.cliente_id in (None, "")
+            or self.barbeiro_id in (None, "")
+            or self.servico_id in (None, "")
+        ):
             return False
-        else:
-            True
+        return True
 
     def validar_pagamento(self):
-        if self.status == "AGENDADO" or self.status == "ATENDIDO":
-            return True
-        else:
-            return False
+        return self.pagamento in ("APOS_CORTE", "PIX_ONLINE")

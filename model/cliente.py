@@ -16,4 +16,3 @@ class Cliente:
             return False
         else:
             return True
-

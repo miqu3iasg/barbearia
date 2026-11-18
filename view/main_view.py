@@ -66,9 +66,7 @@ def criar_janela_principal(controllers: dict | None = None):
     )
     tela_agendamentos.pack(fill="both", expand=True)
 
-    tela_clientes = criar_tela_clientes(
-        tab_clientes, controller=ctrls.get("cliente")
-    )
+    tela_clientes = criar_tela_clientes(tab_clientes, controller=ctrls.get("cliente"))
     tela_clientes.pack(fill="both", expand=True)
 
     tela_barbeiros = criar_tela_barbeiros(
@@ -76,9 +74,7 @@ def criar_janela_principal(controllers: dict | None = None):
     )
     tela_barbeiros.pack(fill="both", expand=True)
 
-    tela_servicos = criar_tela_servicos(
-        tab_servicos, controller=ctrls.get("servico")
-    )
+    tela_servicos = criar_tela_servicos(tab_servicos, controller=ctrls.get("servico"))
     tela_servicos.pack(fill="both", expand=True)
 
     def ao_mudar_aba():

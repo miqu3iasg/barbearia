@@ -1,4 +1,5 @@
 from tkinter import messagebox, ttk
+
 import customtkinter as ctk
 
 from controller import barbeiro_controller
@@ -81,9 +82,7 @@ def criar_tela_barbeiros(master, controller=None):
     tabela.column("nome", width=195, anchor="w")
     tabela.column("status", width=105, anchor="center")
 
-    scrollbar = ttk.Scrollbar(
-        tabela_container, orient="vertical", command=tabela.yview
-    )
+    scrollbar = ttk.Scrollbar(tabela_container, orient="vertical", command=tabela.yview)
     tabela.configure(yscrollcommand=scrollbar.set)
 
     tabela.pack(side="left", fill="both", expand=True)

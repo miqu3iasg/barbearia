@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from tkinter import messagebox, ttk
+
 import customtkinter as ctk
 
 from controller import (
@@ -150,9 +151,7 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
     tabela.column("servico", width=95, anchor="w")
     tabela.column("barbeiro", width=80, anchor="w")
 
-    scrollbar = ttk.Scrollbar(
-        tabela_container, orient="vertical", command=tabela.yview
-    )
+    scrollbar = ttk.Scrollbar(tabela_container, orient="vertical", command=tabela.yview)
     tabela.configure(yscrollcommand=scrollbar.set)
 
     tabela.pack(side="left", fill="both", expand=True)
@@ -176,9 +175,7 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
         try:
             date.fromisoformat(data_str)
             livres = (
-                executar(
-                    "agendamento", "listar_horarios_livres", barbeiro_id, data_str
-                )
+                executar("agendamento", "listar_horarios_livres", barbeiro_id, data_str)
                 or []
             )
             if livres:
@@ -407,9 +404,9 @@ def criar_tela_agendamentos(master, controllers=None, controller=None):
     entry_data.bind("<FocusOut>", atualizar_horarios_livres)
     entry_data.bind("<Return>", atualizar_horarios_livres)
 
-    ctk.CTkButton(
-        botoes_frame, text="Confirmar Agendamento", command=agendar
-    ).grid(row=0, column=0, sticky="we", padx=(0, 4))
+    ctk.CTkButton(botoes_frame, text="Confirmar Agendamento", command=agendar).grid(
+        row=0, column=0, sticky="we", padx=(0, 4)
+    )
     ctk.CTkButton(
         botoes_frame,
         text="Limpar",

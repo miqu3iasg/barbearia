@@ -1,4 +1,5 @@
 from tkinter import messagebox, ttk
+
 import customtkinter as ctk
 
 from controller import servico_controller
@@ -71,9 +72,7 @@ def criar_tela_servicos(master, controller=None):
     tabela.column("nome", width=205, anchor="w")
     tabela.column("preco", width=95, anchor="center")
 
-    scrollbar = ttk.Scrollbar(
-        tabela_container, orient="vertical", command=tabela.yview
-    )
+    scrollbar = ttk.Scrollbar(tabela_container, orient="vertical", command=tabela.yview)
     tabela.configure(yscrollcommand=scrollbar.set)
 
     tabela.pack(side="left", fill="both", expand=True)
@@ -158,7 +157,9 @@ def criar_tela_servicos(master, controller=None):
         nome = entry_nome.get().strip()
         preco_texto = entry_preco.get().replace("R$", "").strip()
         try:
-            _chamar(ctrl, "atualizar_servico", estado["selecionado_id"], nome, preco_texto)
+            _chamar(
+                ctrl, "atualizar_servico", estado["selecionado_id"], nome, preco_texto
+            )
             messagebox.showinfo("Sucesso", "Serviço atualizado com sucesso!")
             limpar_formulario()
             carregar_servicos()
