@@ -1,6 +1,8 @@
 from tkinter import messagebox, ttk
 import customtkinter as ctk
 
+from controller import servico_controller
+
 
 def _chamar(ctrl, funcao: str, *args):
     if isinstance(ctrl, dict):
@@ -8,66 +10,8 @@ def _chamar(ctrl, funcao: str, *args):
     return getattr(ctrl, funcao)(*args)
 
 
-def _criar_mock_servico():
-    dados = {
-        "lista": [
-            {"id": 1, "nome": "Degradê", "preco": 35.00},
-            {"id": 2, "nome": "Social", "preco": 30.00},
-            {"id": 3, "nome": "Corte na Tesoura", "preco": 40.00},
-            {"id": 4, "nome": "Sobrancelha", "preco": 15.00},
-            {"id": 5, "nome": "Barba", "preco": 25.00},
-            {"id": 10, "nome": "Corte + Barba", "preco": 55.00},
-        ],
-        "proximo_id": 13,
-    }
-
-    def validar(nome: str, preco: float):
-        nome_limpo = nome.strip()
-        if not nome_limpo:
-            raise ValueError("O nome do serviço é obrigatório.")
-        if len(nome_limpo) > 50:
-            raise ValueError("O nome do serviço deve ter no máximo 50 caracteres.")
-        if preco <= 0:
-            raise ValueError("O preço do serviço deve ser maior que zero.")
-
-    def listar_todos_os_servicos():
-        return list(dados["lista"])
-
-    def criar_servico(nome: str, preco: float):
-        validar(nome, preco)
-        novo_id = dados["proximo_id"]
-        dados["lista"].append(
-            {"id": novo_id, "nome": nome.strip(), "preco": float(preco)}
-        )
-        dados["proximo_id"] += 1
-        return novo_id
-
-    def atualizar_servico(servico_id: int, nome: str, preco: float):
-        validar(nome, preco)
-        for servico in dados["lista"]:
-            if servico["id"] == servico_id:
-                servico["nome"] = nome.strip()
-                servico["preco"] = float(preco)
-                return True
-        return False
-
-    def excluir_servico(servico_id: int):
-        for i, servico in enumerate(dados["lista"]):
-            if servico["id"] == servico_id:
-                dados["lista"].pop(i)
-                return True
-        return False
-
-    return {
-        "listar_todos_os_servicos": listar_todos_os_servicos,
-        "criar_servico": criar_servico,
-        "atualizar_servico": atualizar_servico,
-        "excluir_servico": excluir_servico,
-    }
-
-
 def criar_tela_servicos(master, controller=None):
-    ctrl = controller if controller is not None else _criar_mock_servico()
+    ctrl = controller if controller is not None else servico_controller
     estado = {"selecionado_id": None, "todos": []}
 
     frame = ctk.CTkFrame(master, fg_color="transparent")
@@ -148,18 +92,6 @@ def criar_tela_servicos(master, controller=None):
             float(getattr(servico, "preco", 0)),
         )
 
-    def converter_preco(texto: str) -> float:
-        valor_limpo = texto.strip().replace("R$", "").replace(",", ".").strip()
-        if not valor_limpo:
-            raise ValueError("Informe o preço do serviço.")
-        try:
-            preco = float(valor_limpo)
-        except ValueError as erro:
-            raise ValueError("Digite um valor numérico válido para o preço.") from erro
-        if preco <= 0:
-            raise ValueError("O preço do serviço deve ser maior que zero.")
-        return round(preco, 2)
-
     def filtrar_tabela(_event=None):
         termo = entry_busca.get().strip().lower()
         for item in tabela.get_children():
@@ -177,7 +109,7 @@ def criar_tela_servicos(master, controller=None):
 
     def carregar_servicos():
         try:
-            estado["todos"] = _chamar(ctrl, "listar_todos_os_servicos") or []
+            estado["todos"] = _chamar(ctrl, "listar_servicos") or []
             filtrar_tabela()
         except Exception as erro:
             messagebox.showerror("Erro ao listar serviços", str(erro))
@@ -205,9 +137,9 @@ def criar_tela_servicos(master, controller=None):
 
     def cadastrar():
         nome = entry_nome.get().strip()
+        preco_texto = entry_preco.get().replace("R$", "").strip()
         try:
-            preco = converter_preco(entry_preco.get())
-            _chamar(ctrl, "criar_servico", nome, preco)
+            _chamar(ctrl, "cadastrar_servico", nome, preco_texto)
             messagebox.showinfo("Sucesso", "Serviço cadastrado com sucesso!")
             limpar_formulario()
             carregar_servicos()
@@ -224,9 +156,9 @@ def criar_tela_servicos(master, controller=None):
             return
 
         nome = entry_nome.get().strip()
+        preco_texto = entry_preco.get().replace("R$", "").strip()
         try:
-            preco = converter_preco(entry_preco.get())
-            _chamar(ctrl, "atualizar_servico", estado["selecionado_id"], nome, preco)
+            _chamar(ctrl, "atualizar_servico", estado["selecionado_id"], nome, preco_texto)
             messagebox.showinfo("Sucesso", "Serviço atualizado com sucesso!")
             limpar_formulario()
             carregar_servicos()

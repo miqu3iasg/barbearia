@@ -1,6 +1,8 @@
 from tkinter import messagebox, ttk
 import customtkinter as ctk
 
+from controller import cliente_controller
+
 
 def _chamar(ctrl, funcao: str, *args):
     if isinstance(ctrl, dict):
@@ -8,60 +10,8 @@ def _chamar(ctrl, funcao: str, *args):
     return getattr(ctrl, funcao)(*args)
 
 
-def _criar_mock_cliente():
-    dados = {
-        "lista": [
-            {"id": 1, "nome": "João Silva", "telefone": "11999998888"},
-            {"id": 2, "nome": "Carlos Souza", "telefone": "11988887777"},
-        ],
-        "proximo_id": 3,
-    }
-
-    def validar(nome: str, telefone: str):
-        if not nome.strip():
-            raise ValueError("O nome do cliente é obrigatório.")
-        tel = telefone.strip()
-        if not tel.isdigit() or not (10 <= len(tel) <= 15):
-            raise ValueError("O telefone deve conter apenas números (10 a 15 dígitos).")
-
-    def listar_todos_os_clientes():
-        return list(dados["lista"])
-
-    def criar_cliente(nome: str, telefone: str):
-        validar(nome, telefone)
-        novo_id = dados["proximo_id"]
-        dados["lista"].append(
-            {"id": novo_id, "nome": nome.strip(), "telefone": telefone.strip()}
-        )
-        dados["proximo_id"] += 1
-        return novo_id
-
-    def atualizar_cliente(cliente_id: int, nome: str, telefone: str):
-        validar(nome, telefone)
-        for cliente in dados["lista"]:
-            if cliente["id"] == cliente_id:
-                cliente["nome"] = nome.strip()
-                cliente["telefone"] = telefone.strip()
-                return True
-        return False
-
-    def excluir_cliente(cliente_id: int):
-        for i, cliente in enumerate(dados["lista"]):
-            if cliente["id"] == cliente_id:
-                dados["lista"].pop(i)
-                return True
-        return False
-
-    return {
-        "listar_todos_os_clientes": listar_todos_os_clientes,
-        "criar_cliente": criar_cliente,
-        "atualizar_cliente": atualizar_cliente,
-        "excluir_cliente": excluir_cliente,
-    }
-
-
 def criar_tela_clientes(master, controller=None):
-    ctrl = controller if controller is not None else _criar_mock_cliente()
+    ctrl = controller if controller is not None else cliente_controller
     estado = {"selecionado_id": None, "todos": []}
 
     frame = ctk.CTkFrame(master, fg_color="transparent")
@@ -168,7 +118,7 @@ def criar_tela_clientes(master, controller=None):
 
     def carregar_clientes():
         try:
-            estado["todos"] = _chamar(ctrl, "listar_todos_os_clientes") or []
+            estado["todos"] = _chamar(ctrl, "listar_clientes") or []
             filtrar_tabela()
         except Exception as erro:
             messagebox.showerror("Erro ao listar clientes", str(erro))
@@ -197,7 +147,7 @@ def criar_tela_clientes(master, controller=None):
         nome = entry_nome.get().strip()
         telefone = entry_telefone.get().strip()
         try:
-            _chamar(ctrl, "criar_cliente", nome, telefone)
+            _chamar(ctrl, "cadastrar_cliente", nome, telefone)
             messagebox.showinfo("Sucesso", "Cliente cadastrado com sucesso!")
             limpar_formulario()
             carregar_clientes()

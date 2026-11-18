@@ -7,6 +7,12 @@ if ROOT_DIR not in sys.path:
 
 import customtkinter as ctk
 
+from controller import (
+    agendamento_controller,
+    barbeiro_controller,
+    cliente_controller,
+    servico_controller,
+)
 from view.agendamento_view import criar_tela_agendamentos
 from view.barbeiro_view import criar_tela_barbeiros
 from view.cliente_view import criar_tela_clientes
@@ -14,7 +20,14 @@ from view.servico_view import criar_tela_servicos
 
 
 def criar_janela_principal(controllers: dict | None = None):
-    ctrls = controllers or {}
+    ctrls = {
+        "agendamento": agendamento_controller,
+        "cliente": cliente_controller,
+        "barbeiro": barbeiro_controller,
+        "servico": servico_controller,
+    }
+    if controllers:
+        ctrls.update(controllers)
 
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("blue")
@@ -67,6 +80,12 @@ def criar_janela_principal(controllers: dict | None = None):
         tab_servicos, controller=ctrls.get("servico")
     )
     tela_servicos.pack(fill="both", expand=True)
+
+    def ao_mudar_aba():
+        if tabview.get() == "Agenda" and hasattr(tela_agendamentos, "recarregar_tudo"):
+            tela_agendamentos.recarregar_tudo()
+
+    tabview.configure(command=ao_mudar_aba)
 
     return app
 
